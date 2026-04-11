@@ -1,26 +1,27 @@
-import { Toaster } from "@/components/ui/toaster"
-import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-import AppLayout from '@/components/layout/AppLayout';
-import Dashboard from '@/pages/Dashboard';
-import NewAnalysis from '@/pages/NewAnalysis';
-import Analyzing from '@/pages/Analyzing';
-import Results from '@/pages/Results';
-import Recommendations from '@/pages/Recommendations';
-import ContentCalendar from '@/pages/ContentCalendar';
-import Premium from '@/pages/Premium';
-import Competitors from '@/pages/Competitors';
-import Pricing from '@/pages/Pricing';
-import Login from '@/pages/Login';
+import { Analytics } from "@vercel/analytics/react";
+import { Toaster } from "@/components/ui/toaster";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClientInstance } from "@/lib/query-client";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import PageNotFound from "./lib/PageNotFound";
+import { AuthProvider, useAuth } from "@/lib/AuthContext";
+import UserNotRegisteredError from "@/components/UserNotRegisteredError";
+import AppLayout from "@/components/layout/AppLayout";
+import Dashboard from "@/pages/Dashboard";
+import NewAnalysis from "@/pages/NewAnalysis";
+import Analyzing from "@/pages/Analyzing";
+import Results from "@/pages/Results";
+import Recommendations from "@/pages/Recommendations";
+import ContentCalendar from "@/pages/ContentCalendar";
+import Premium from "@/pages/Premium";
+import Competitors from "@/pages/Competitors";
+import Pricing from "@/pages/Pricing";
+import Login from "@/pages/Login";
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } =
+    useAuth();
 
-  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -29,19 +30,16 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
   if (authError) {
-    if (authError.type === 'user_not_registered') {
+    if (authError.type === "user_not_registered") {
       return <UserNotRegisteredError />;
     }
   }
 
-  // Show login page if not authenticated
   if (!isAuthenticated) {
     return <Login />;
   }
 
-  // Render the main app
   return (
     <Routes>
       <Route element={<AppLayout />}>
@@ -60,9 +58,7 @@ const AuthenticatedApp = () => {
   );
 };
 
-
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
@@ -70,9 +66,10 @@ function App() {
           <AuthenticatedApp />
         </Router>
         <Toaster />
+        <Analytics />
       </QueryClientProvider>
     </AuthProvider>
-  )
+  );
 }
 
-export default App
+export default App;
