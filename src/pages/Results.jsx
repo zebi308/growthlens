@@ -35,7 +35,7 @@ export default function Results() {
     return (
       <div className="p-6 lg:p-10 max-w-4xl mx-auto text-center py-20">
         <p className="text-muted-foreground">Analysis not found.</p>
-        <Link to="/"><Button variant="ghost" className="mt-4"><ArrowLeft className="w-4 h-4 mr-2" />Back to Dashboard</Button></Link>
+        <Link to="/dashboard"><Button variant="ghost" className="mt-4"><ArrowLeft className="w-4 h-4 mr-2" />Back to Dashboard</Button></Link>
       </div>
     );
   }
@@ -45,7 +45,7 @@ export default function Results() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center justify-between mb-8">
           <div>
-            <Link to="/" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2">
+            <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2">
               <ArrowLeft className="w-3 h-3" /> Dashboard
             </Link>
             <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">{analysis.industry}</h1>

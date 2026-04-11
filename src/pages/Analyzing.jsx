@@ -163,7 +163,7 @@ Return:
       status: 'completed',
     });
 
-    navigate(`/results?id=${id}`);
+    navigate(`/dashboard/results?id=${id}`);
   };
 
   const CurrentIcon = stages[stageIdx].icon;

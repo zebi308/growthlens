@@ -66,7 +66,7 @@ export default function NewAnalysis() {
       ...data,
       status: 'analyzing',
     });
-    navigate(`/analyzing?id=${record.id}`);
+    navigate(`/dashboard/analyzing?id=${record.id}`);
   };
 
   if (limitReached) {
@@ -80,7 +80,7 @@ export default function NewAnalysis() {
           <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
             You've reached your free limit of 2 analyses this month. Upgrade to Pro for unlimited analyses.
           </p>
-          <a href="/pricing">
+          <a href="/dashboard/pricing">
             <Button className="gap-2 neon-glow rounded-xl px-8">
               <Sparkles className="w-4 h-4" /> Upgrade to Pro
             </Button>

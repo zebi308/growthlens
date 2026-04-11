@@ -72,7 +72,7 @@ export default function Dashboard() {
             <h1 className="text-3xl lg:text-4xl font-display font-black text-foreground neon-text">Your Brand Hub</h1>
             <p className="text-muted-foreground mt-1">AI-powered personal branding insights</p>
           </div>
-          <Link to="/new-analysis">
+          <Link to="/dashboard/new-analysis">
             <Button className="gap-2 rounded-xl px-6 h-11 neon-glow font-semibold">
               <Plus className="w-4 h-4" /> New Analysis
             </Button>
@@ -164,7 +164,7 @@ export default function Dashboard() {
               {activeTab === 'All' ? 'Start by creating your first brand analysis.' : `Switch to "All" to see other analyses.`}
             </p>
             {activeTab === 'All' && (
-              <Link to="/new-analysis">
+              <Link to="/dashboard/new-analysis">
                 <Button className="gap-2 rounded-xl neon-glow font-semibold">
                   <Plus className="w-4 h-4" /> Create First Analysis
                 </Button>

@@ -108,7 +108,7 @@ export default function Recommendations() {
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
                   <Lock className="w-5 h-5 text-muted-foreground mb-2" />
                   <p className="text-xs text-muted-foreground mb-3">+{lockedNetworking.length} more networking opportunities</p>
-                  <Link to="/pricing">
+                  <Link to="/dashboard/pricing">
                     <Button size="sm" className="gap-1.5 rounded-lg text-xs">
                       <Zap className="w-3 h-3" /> Upgrade to Pro
                     </Button>

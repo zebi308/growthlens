@@ -214,7 +214,7 @@ export default function ContentCalendar() {
                   <Lock className="w-6 h-6 text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground mb-1 font-medium">+{lockedCalendar.length} more days of content</p>
                   <p className="text-xs text-muted-foreground mb-3">Unlock the full 30-day calendar with Pro</p>
-                  <Link to="/pricing">
+                  <Link to="/dashboard/pricing">
                     <Button size="sm" className="gap-1.5 rounded-lg">
                       <Zap className="w-3 h-3" /> Upgrade to Pro
                     </Button>

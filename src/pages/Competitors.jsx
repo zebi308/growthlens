@@ -316,7 +316,7 @@ Return a detailed competitive analysis with:
             <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/20 rounded-lg p-3 mb-4">
               {error}
               {!isPro && error.includes('Upgrade') && (
-                <Link to="/pricing" className="block mt-2">
+                <Link to="/dashboard/pricing" className="block mt-2">
                   <Button size="sm" variant="outline" className="gap-1.5 text-xs">
                     <Zap className="w-3 h-3" /> Upgrade to Pro
                   </Button>
