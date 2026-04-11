@@ -5,12 +5,12 @@ import { appClient } from '@/api/appClient';
 import ThemeToggle from '@/components/shared/ThemeToggle';
 
 const navItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/new-analysis', icon: Plus, label: 'New Analysis' },
-  { path: '/recommendations', icon: Lightbulb, label: 'Recommendations' },
-  { path: '/content-calendar', icon: Calendar, label: 'Content Calendar' },
-  { path: '/competitors', icon: BarChart2, label: 'Competitors' },
-  { path: '/pricing', icon: DollarSign, label: 'Pricing' },
+  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/dashboard/new-analysis', icon: Plus, label: 'New Analysis' },
+  { path: '/dashboard/recommendations', icon: Lightbulb, label: 'Recommendations' },
+  { path: '/dashboard/content-calendar', icon: Calendar, label: 'Content Calendar' },
+  { path: '/dashboard/competitors', icon: BarChart2, label: 'Competitors' },
+  { path: '/dashboard/pricing', icon: DollarSign, label: 'Pricing' },
 ];
 
 export default function Sidebar() {
@@ -30,7 +30,7 @@ export default function Sidebar() {
 
       <nav className="flex-1 px-3 mt-4 space-y-1 overflow-y-auto">
         {navItems.map(item => {
-          const isActive = location.pathname === item.path;
+          const isActive = location.pathname === item.path || (item.path === '/dashboard' && location.pathname === '/dashboard/');
           return (
             <Link
               key={item.path}
@@ -50,7 +50,7 @@ export default function Sidebar() {
 
       <div className="p-3 mt-auto border-t border-sidebar-border space-y-1">
         <Link
-          to="/premium"
+          to="/dashboard/premium"
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-amber-400 hover:bg-amber-400/10 transition-all w-full"
         >
           <Zap className="w-4 h-4" />
