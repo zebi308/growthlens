@@ -123,7 +123,7 @@ export default function BrandScorecard({ analysis }) {
           <p className="text-xs text-muted-foreground mb-3">
             Upgrade to Pro to unlock detailed grades for Content Quality, Engagement, Networking & Industry Fit
           </p>
-          <Link to="/pricing">
+          <Link to="/dashboard/pricing">
             <Button size="sm" className="gap-1.5 rounded-lg">
               <Zap className="w-3 h-3" /> Upgrade to Pro
             </Button>

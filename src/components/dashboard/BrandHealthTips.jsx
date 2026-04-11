@@ -34,7 +34,7 @@ export default function BrandHealthTips({ analyses }) {
         </div>
         <h3 className="font-display font-bold text-foreground mb-1">Brand Insights</h3>
         <p className="text-xs text-muted-foreground mb-4">Run your first analysis to see personalized tips here</p>
-        <Link to="/new-analysis">
+        <Link to="/dashboard/new-analysis">
           <Button size="sm" className="gap-1.5 rounded-lg text-xs">
             <Sparkles className="w-3 h-3" /> Start Analysis
           </Button>

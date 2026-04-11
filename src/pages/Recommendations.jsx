@@ -36,7 +36,7 @@ export default function Recommendations() {
     return (
       <div className="p-6 lg:p-10 max-w-4xl mx-auto text-center py-20">
         <p className="text-muted-foreground mb-4">No completed analysis found. Run an analysis first.</p>
-        <Link to="/new-analysis"><Button>Start New Analysis</Button></Link>
+        <Link to="/dashboard/new-analysis"><Button>Start New Analysis</Button></Link>
       </div>
     );
   }
