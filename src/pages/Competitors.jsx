@@ -11,11 +11,6 @@ const COLORS = ['#a855f7', '#ec4899', '#38bdf8', '#10b981', '#f59e0b'];
 
 const METRICS = ['Brand Score', 'Engagement', 'Audience Growth', 'Content Quality', 'Consistency'];
 
-function generateMockData(handle) {
-  const seed = handle.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  return METRICS.map(m => ({ metric: m, value: 30 + ((seed * METRICS.indexOf(m) * 7) % 60) }));
-}
-
 function CustomTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   return (
@@ -49,9 +44,8 @@ export default function Competitors() {
       handles.map(async (handle) => {
         const res = await appClient.integrations.Core.InvokeLLM({
           prompt: `Analyze the public social media brand presence of "${handle}". 
-IMPORTANT: Do NOT invent or estimate follower counts — set followers to null since you cannot access real-time Instagram data.
 Return scores 0-100 (based on observable brand signals) for: Brand Score, Engagement, Audience Growth, Content Quality, Consistency.
-Return a one-line niche description. Never fabricate follower numbers.`,
+Return a one-line niche description.`,
           response_json_schema: {
             type: 'object',
             properties: {
@@ -60,12 +54,11 @@ Return a one-line niche description. Never fabricate follower numbers.`,
               audience_growth: { type: 'number' },
               content_quality: { type: 'number' },
               consistency: { type: 'number' },
-              followers: { type: ['string', 'null'] },
               niche: { type: 'string' },
             },
           },
         });
-        return { handle, ...res, followers: null }; // always null — live data not available
+        return { handle, ...res };
       })
     );
     setAnalysisData(results);
@@ -168,7 +161,6 @@ Return a one-line niche description. Never fabricate follower numbers.`,
                   <th className="text-right py-2 px-2 text-xs text-muted-foreground font-semibold uppercase tracking-wide">Engage</th>
                   <th className="text-right py-2 px-2 text-xs text-muted-foreground font-semibold uppercase tracking-wide">Growth</th>
                   <th className="text-right py-2 px-2 text-xs text-muted-foreground font-semibold uppercase tracking-wide">Content</th>
-                  <th className="text-right py-2 px-2 text-xs text-muted-foreground font-semibold uppercase tracking-wide">Followers</th>
                   <th className="text-left py-2 pl-4 text-xs text-muted-foreground font-semibold uppercase tracking-wide">Niche</th>
                 </tr>
               </thead>
@@ -180,10 +172,6 @@ Return a one-line niche description. Never fabricate follower numbers.`,
                     <td className="py-3 px-2 text-right text-foreground">{d.engagement}</td>
                     <td className="py-3 px-2 text-right text-foreground">{d.audience_growth}</td>
                     <td className="py-3 px-2 text-right text-foreground">{d.content_quality}</td>
-                    <td className="py-3 px-2 text-right text-muted-foreground">
-                      <span className="text-xs">{d.followers || 'N/A'}</span>
-                      {!d.followers && <span className="block text-[10px] text-muted-foreground/60">verify manually</span>}
-                    </td>
                     <td className="py-3 pl-4 text-muted-foreground text-xs">{d.niche}</td>
                   </tr>
                 ))}
