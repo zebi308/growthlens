@@ -4,11 +4,12 @@ import { appClient } from '@/api/appClient';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Calendar, List, GripVertical } from 'lucide-react';
+import { ArrowLeft, Calendar, List, GripVertical, Lock, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ExportMenu from '@/components/shared/ExportMenu';
 import { exportCalendarCsv, exportCalendarPdf } from '@/utils/exportHelpers';
 import CalendarDay from '@/components/calendar/CalendarDay';
+import { useUserPlan } from '@/hooks/useUserPlan';
 
 const PLATFORM_COLORS = {
   LinkedIn: 'border-l-blue-500 bg-blue-500/5',
@@ -39,6 +40,8 @@ const BEST_TIMES = {
   YouTube: '2–4 PM',
   Facebook: '1–4 PM',
 };
+
+const FREE_CALENDAR_LIMIT = 7;
 
 function WeeklyCalendarView({ items }) {
   const [calItems, setCalItems] = useState(() =>
@@ -112,6 +115,7 @@ export default function ContentCalendar() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
   const [viewMode, setViewMode] = useState('grid');
+  const { isPro } = useUserPlan();
 
   const { data: analyses = [], isLoading } = useQuery({
     queryKey: ['analyses-cal'],
@@ -119,7 +123,9 @@ export default function ContentCalendar() {
   });
 
   const analysis = id ? analyses.find(a => a.id === id) : analyses.find(a => a.status === 'completed');
-  const calendar = analysis?.content_calendar || [];
+  const fullCalendar = analysis?.content_calendar || [];
+  const visibleCalendar = isPro ? fullCalendar : fullCalendar.slice(0, FREE_CALENDAR_LIMIT);
+  const lockedCalendar = isPro ? [] : fullCalendar.slice(FREE_CALENDAR_LIMIT);
 
   if (isLoading) {
     return (
@@ -150,10 +156,14 @@ export default function ContentCalendar() {
         <div className="flex items-start justify-between gap-4 mb-2 flex-wrap">
           <div>
             <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">Content Calendar</h1>
-            <p className="text-muted-foreground text-sm mt-1">14-day content plan — drag to reorder posts</p>
+            <p className="text-muted-foreground text-sm mt-1">
+              {isPro ? `${fullCalendar.length}-day` : '7-day'} content plan — drag to reorder posts
+              {!isPro && fullCalendar.length > FREE_CALENDAR_LIMIT && (
+                <span className="text-primary ml-1">(Pro unlocks {fullCalendar.length} days)</span>
+              )}
+            </p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Platform legend */}
             <div className="hidden lg:flex items-center gap-3 mr-2">
               {Object.entries(PLATFORM_DOT).slice(0, 4).map(([p, c]) => (
                 <div key={p} className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -161,7 +171,6 @@ export default function ContentCalendar() {
                 </div>
               ))}
             </div>
-            {/* View toggle */}
             <div className="flex items-center gap-1 bg-muted/40 rounded-lg p-1">
               <button onClick={() => setViewMode('grid')} className={`p-1.5 rounded ${viewMode === 'grid' ? 'bg-primary text-white' : 'text-muted-foreground'}`}>
                 <Calendar className="w-3.5 h-3.5" />
@@ -170,28 +179,50 @@ export default function ContentCalendar() {
                 <List className="w-3.5 h-3.5" />
               </button>
             </div>
-            {calendar.length > 0 && (
+            {isPro && visibleCalendar.length > 0 && (
               <ExportMenu
                 label="Export"
-                onExportCsv={() => exportCalendarCsv(calendar, analysis.industry)}
-                onExportPdf={() => exportCalendarPdf(calendar, analysis.industry)}
+                onExportCsv={() => exportCalendarCsv(fullCalendar, analysis.industry)}
+                onExportPdf={() => exportCalendarPdf(fullCalendar, analysis.industry)}
               />
             )}
           </div>
         </div>
 
-        {calendar.length > 0 ? (
-          viewMode === 'grid' ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-6">
-              {calendar.map((item, i) => (
-                <CalendarDay key={i} item={item} index={i} />
-              ))}
-            </div>
-          ) : (
-            <div className="mt-6">
-              <WeeklyCalendarView items={calendar} />
-            </div>
-          )
+        {visibleCalendar.length > 0 ? (
+          <>
+            {viewMode === 'grid' ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-6">
+                {visibleCalendar.map((item, i) => (
+                  <CalendarDay key={i} item={item} index={i} />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-6">
+                <WeeklyCalendarView items={visibleCalendar} />
+              </div>
+            )}
+
+            {!isPro && lockedCalendar.length > 0 && (
+              <div className="relative mt-4">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 blur-sm pointer-events-none opacity-40">
+                  {lockedCalendar.slice(0, 3).map((item, i) => (
+                    <CalendarDay key={i} item={item} index={i} />
+                  ))}
+                </div>
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
+                  <Lock className="w-6 h-6 text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground mb-1 font-medium">+{lockedCalendar.length} more days of content</p>
+                  <p className="text-xs text-muted-foreground mb-3">Unlock the full 30-day calendar with Pro</p>
+                  <Link to="/pricing">
+                    <Button size="sm" className="gap-1.5 rounded-lg">
+                      <Zap className="w-3 h-3" /> Upgrade to Pro
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <div className="glass-card rounded-2xl p-12 text-center neon-border mt-6">
             <p className="text-muted-foreground">No content calendar generated for this analysis.</p>

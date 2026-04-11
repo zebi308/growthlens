@@ -5,17 +5,21 @@ import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Users } from 'lucide-react';
+import { ArrowLeft, Users, Lock, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import RecommendationsList from '@/components/results/RecommendationsList';
 import TrendPredictions from '@/components/results/TrendPredictions';
 import InfluencerSuggestions from '@/components/results/InfluencerSuggestions';
 import ExportMenu from '@/components/shared/ExportMenu';
 import { exportNetworkingCsv, exportNetworkingPdf } from '@/utils/exportHelpers';
+import { useUserPlan } from '@/hooks/useUserPlan';
+
+const FREE_NETWORKING_LIMIT = 1;
 
 export default function Recommendations() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
+  const { isPro } = useUserPlan();
 
   const { data: analyses = [], isLoading } = useQuery({
     queryKey: ['analyses-recs'],
@@ -37,6 +41,10 @@ export default function Recommendations() {
     );
   }
 
+  const networking = analysis.networking_opportunities || [];
+  const visibleNetworking = isPro ? networking : networking.slice(0, FREE_NETWORKING_LIMIT);
+  const lockedNetworking = isPro ? [] : networking.slice(FREE_NETWORKING_LIMIT);
+
   return (
     <div className="p-6 lg:p-10 max-w-4xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -47,24 +55,25 @@ export default function Recommendations() {
         <p className="text-muted-foreground mb-8">Actionable tips to improve your personal brand</p>
 
         <RecommendationsList recommendations={analysis.recommendations} />
-
         <TrendPredictions trends={analysis.trend_predictions} />
         <InfluencerSuggestions influencers={analysis.influencer_suggestions} />
 
-        {analysis.networking_opportunities && analysis.networking_opportunities.length > 0 && (
+        {networking.length > 0 && (
           <Card className="p-6 mt-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-base font-semibold flex items-center gap-2">
                 <Users className="w-5 h-5 text-primary" /> Networking Opportunities
               </h3>
-              <ExportMenu
-                label="Export"
-                onExportCsv={() => exportNetworkingCsv(analysis.networking_opportunities, analysis.industry)}
-                onExportPdf={() => exportNetworkingPdf(analysis.networking_opportunities, analysis.industry)}
-              />
+              {isPro && (
+                <ExportMenu
+                  label="Export"
+                  onExportCsv={() => exportNetworkingCsv(networking, analysis.industry)}
+                  onExportPdf={() => exportNetworkingPdf(networking, analysis.industry)}
+                />
+              )}
             </div>
             <div className="space-y-3">
-              {analysis.networking_opportunities.map((n, i) => (
+              {visibleNetworking.map((n, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 10 }}
@@ -85,6 +94,28 @@ export default function Recommendations() {
                 </motion.div>
               ))}
             </div>
+
+            {!isPro && lockedNetworking.length > 0 && (
+              <div className="relative mt-3">
+                <div className="space-y-3 blur-sm pointer-events-none opacity-40">
+                  {lockedNetworking.slice(0, 2).map((n, i) => (
+                    <div key={i} className="p-4 rounded-xl bg-muted/50 border border-border/50">
+                      <h4 className="text-sm font-semibold text-foreground">{n.name}</h4>
+                      <p className="text-sm text-muted-foreground">{n.description}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
+                  <Lock className="w-5 h-5 text-muted-foreground mb-2" />
+                  <p className="text-xs text-muted-foreground mb-3">+{lockedNetworking.length} more networking opportunities</p>
+                  <Link to="/pricing">
+                    <Button size="sm" className="gap-1.5 rounded-lg text-xs">
+                      <Zap className="w-3 h-3" /> Upgrade to Pro
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )}
           </Card>
         )}
       </motion.div>
