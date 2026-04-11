@@ -1,0 +1,221 @@
+{
+  "name": "BrandAnalysis",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "analyzing",
+        "completed",
+        "failed"
+      ],
+      "default": "pending",
+      "description": "Current status of the analysis"
+    },
+    "instagram_url": {
+      "type": "string",
+      "description": "Instagram profile URL (primary)"
+    },
+    "tiktok_url": {
+      "type": "string",
+      "description": "TikTok profile URL"
+    },
+    "youtube_url": {
+      "type": "string",
+      "description": "YouTube channel URL"
+    },
+    "twitter_url": {
+      "type": "string",
+      "description": "Twitter/X profile URL"
+    },
+    "linkedin_url": {
+      "type": "string",
+      "description": "LinkedIn profile URL (secondary)"
+    },
+    "facebook_url": {
+      "type": "string",
+      "description": "Facebook profile/page URL (secondary)"
+    },
+    "industry": {
+      "type": "string",
+      "description": "User's industry or niche"
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "User's brand goals"
+    },
+    "existing_content": {
+      "type": "string",
+      "description": "Optional paste of existing content"
+    },
+    "overall_grade": {
+      "type": "string",
+      "description": "Overall brand grade A-F"
+    },
+    "content_quality_grade": {
+      "type": "string",
+      "description": "Content quality grade A-F"
+    },
+    "engagement_grade": {
+      "type": "string",
+      "description": "Engagement strategy grade A-F"
+    },
+    "networking_grade": {
+      "type": "string",
+      "description": "Networking effectiveness grade A-F"
+    },
+    "alignment_grade": {
+      "type": "string",
+      "description": "Industry alignment grade A-F"
+    },
+    "brand_summary": {
+      "type": "string",
+      "description": "AI-generated brand analysis summary"
+    },
+    "strengths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Identified strengths"
+    },
+    "weaknesses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Identified weaknesses"
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Actionable recommendations"
+    },
+    "content_calendar": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "post_type": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "caption": {
+            "type": "string"
+          },
+          "hashtags": {
+            "type": "string"
+          },
+          "cta": {
+            "type": "string"
+          },
+          "media_suggestion": {
+            "type": "string"
+          },
+          "best_time": {
+            "type": "string"
+          },
+          "engagement_prediction": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Generated content calendar"
+    },
+    "networking_opportunities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Networking recommendations"
+    },
+    "trend_predictions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "why": {
+            "type": "string"
+          },
+          "content_idea": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Hot topics predicted for the next 7 days"
+    },
+    "influencer_suggestions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "niche": {
+            "type": "string"
+          },
+          "why_collab": {
+            "type": "string"
+          },
+          "profile_url": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Suggested influencers to collaborate with"
+    }
+  },
+  "required": []
+}

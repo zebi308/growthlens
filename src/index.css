@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=Montserrat:wght@700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'Poppins', sans-serif;
+    --font-display: 'Montserrat', sans-serif;
+    /* Dark neon theme as default */
+    --background: 240 13% 6%;
+    --foreground: 0 0% 95%;
+    --card: 240 12% 9%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 12% 9%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 280 100% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 10% 14%;
+    --secondary-foreground: 0 0% 80%;
+    --muted: 240 10% 12%;
+    --muted-foreground: 240 5% 50%;
+    --accent: 320 100% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 10% 16%;
+    --input: 240 10% 14%;
+    --ring: 280 100% 65%;
+    --chart-1: 280 100% 65%;
+    --chart-2: 320 100% 60%;
+    --chart-3: 195 100% 55%;
+    --chart-4: 45 100% 60%;
+    --chart-5: 160 80% 50%;
+    --radius: 0.875rem;
+    --sidebar-background: 240 15% 5%;
+    --sidebar-foreground: 240 10% 88%;
+    --sidebar-primary: 280 100% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 12% 10%;
+    --sidebar-accent-foreground: 240 10% 88%;
+    --sidebar-border: 240 10% 12%;
+    --sidebar-ring: 280 100% 65%;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-image: radial-gradient(ellipse at 20% 50%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+                      radial-gradient(ellipse at 80% 20%, rgba(236, 72, 153, 0.06) 0%, transparent 50%);
+  }
+}
+
+@layer utilities {
+  .neon-border {
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.12), inset 0 0 12px rgba(139, 92, 246, 0.04);
+  }
+  .neon-border-pink {
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    box-shadow: 0 0 12px rgba(236, 72, 153, 0.12), inset 0 0 12px rgba(236, 72, 153, 0.04);
+  }
+  .glass-card {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .neon-text {
+    text-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
+  }
+  .neon-glow {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 4px 24px rgba(139, 92, 246, 0.2);
+  }
+  .neon-glow-pink {
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.4), 0 4px 24px rgba(236, 72, 153, 0.2);
+  }
+}
