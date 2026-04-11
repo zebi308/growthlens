@@ -22,7 +22,7 @@ export default function Sidebar() {
           <Sparkles className="w-5 h-5 text-sidebar-primary-foreground" />
         </div>
         <div>
-          <h1 className="text-base font-bold tracking-tight text-sidebar-foreground">BrandAI</h1>
+          <h1 className="text-base font-bold tracking-tight text-sidebar-foreground">Outpace</h1>
           <p className="text-[11px] text-sidebar-foreground/50 tracking-wide uppercase">Personal Brand Builder</p>
         </div>
       </div>
