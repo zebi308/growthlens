@@ -1,6 +1,6 @@
 # Brand_AI
 
-Supabase-backed BrandAI app.
+Supabase-backed Outpace app.
 
 This repository is now independent from Base44 and uses Supabase for auth, data, and server-side LLM invocation.
 

@@ -1,4 +1,4 @@
--- Supabase schema for BrandAI backend migration.
+-- Supabase schema for Outpace backend migration.
 -- Run with: supabase db push (or execute in SQL editor).
 
 create extension if not exists pgcrypto;

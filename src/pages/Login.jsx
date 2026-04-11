@@ -8,13 +8,19 @@ import { Sparkles, Loader2, Mail, Lock, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Login({ onAuthSuccess }) {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [mode, setMode] = useState('signin'); // 'signin' | 'signup' | 'forgot'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [form, setForm] = useState({ email: '', password: '', fullName: '' });
 
   const update = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
+
+  const switchMode = (newMode) => {
+    setMode(newMode);
+    setError(null);
+    setSuccess(null);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +29,15 @@ export default function Login({ onAuthSuccess }) {
     setSuccess(null);
 
     try {
-      if (isSignUp) {
+      if (mode === 'forgot') {
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(form.email, {
+          redirectTo: `${window.location.origin}`,
+        });
+
+        if (resetError) throw resetError;
+
+        setSuccess('Password reset link sent! Check your email inbox.');
+      } else if (mode === 'signup') {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: form.email,
           password: form.password,
@@ -77,13 +91,13 @@ export default function Login({ onAuthSuccess }) {
           </div>
           <h1 className="text-2xl font-bold text-foreground">BrandFlow AI</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {isSignUp ? 'Create your account' : 'Sign in to your account'}
+            {mode === 'signup' ? 'Create your account' : mode === 'forgot' ? 'Reset your password' : 'Sign in to your account'}
           </p>
         </div>
 
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
+            {mode === 'signup' && (
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium">Full Name</Label>
                 <div className="relative">
@@ -113,21 +127,34 @@ export default function Login({ onAuthSuccess }) {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="password"
-                  placeholder="At least 6 characters"
-                  value={form.password}
-                  onChange={e => update('password', e.target.value)}
-                  className="h-11 pl-10"
-                  required
-                  minLength={6}
-                />
+            {mode !== 'forgot' && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Password</Label>
+                  {mode === 'signin' && (
+                    <button
+                      type="button"
+                      onClick={() => switchMode('forgot')}
+                      className="text-xs text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    placeholder="At least 6 characters"
+                    value={form.password}
+                    onChange={e => update('password', e.target.value)}
+                    className="h-11 pl-10"
+                    required
+                    minLength={6}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {error && (
               <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/20 rounded-lg p-3">
@@ -151,22 +178,28 @@ export default function Login({ onAuthSuccess }) {
               ) : (
                 <Sparkles className="w-4 h-4" />
               )}
-              {loading ? 'Please wait...' : isSignUp ? 'Create Account' : 'Sign In'}
+              {loading ? 'Please wait...' : mode === 'signup' ? 'Create Account' : mode === 'forgot' ? 'Send Reset Link' : 'Sign In'}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsSignUp(!isSignUp);
-                setError(null);
-                setSuccess(null);
-              }}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-            </button>
+          <div className="mt-6 text-center space-y-2">
+            {mode === 'forgot' ? (
+              <button
+                type="button"
+                onClick={() => switchMode('signin')}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Back to sign in
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => switchMode(mode === 'signup' ? 'signin' : 'signup')}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {mode === 'signup' ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+              </button>
+            )}
           </div>
         </Card>
       </motion.div>
