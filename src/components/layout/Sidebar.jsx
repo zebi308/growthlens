@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Plus, Calendar, Lightbulb, LogOut, Sparkles, Zap, BarChart2, DollarSign } from 'lucide-react';
 import { appClient } from '@/api/appClient';
+import ThemeToggle from '@/components/shared/ThemeToggle';
 
 const navItems = [
   { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -23,7 +24,7 @@ export default function Sidebar() {
         </div>
         <div>
           <h1 className="text-base font-bold tracking-tight text-sidebar-foreground">Outpace</h1>
-          <p className="text-[11px] text-sidebar-foreground/50 tracking-wide uppercase">Personal Brand Builder</p>
+          <p className="text-[11px] text-sidebar-foreground/50 tracking-wide uppercase">AI Brand Intelligence</p>
         </div>
       </div>
 
@@ -55,6 +56,7 @@ export default function Sidebar() {
           <Zap className="w-4 h-4" />
           Premium Features
         </Link>
+        <ThemeToggle />
         <button
           onClick={async () => {
             await appClient.auth.logout();

@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import AnimatedStatCard from '@/components/dashboard/AnimatedStatCard';
 import BrandScoreChart from '@/components/dashboard/BrandScoreChart';
 import PlatformDonut from '@/components/dashboard/PlatformDonut';
-import GoalProgressChart from '@/components/dashboard/GoalProgressChart';
+import BrandHealthTips from '@/components/dashboard/BrandHealthTips';
 import KanbanAnalysisCard from '@/components/dashboard/KanbanAnalysisCard';
 
 const gradeToRadial = { A: 95, B: 78, C: 60, D: 42, F: 18 };
@@ -66,7 +66,6 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 lg:p-10 max-w-6xl mx-auto">
-      {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
@@ -81,7 +80,6 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* Animated Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <AnimatedStatCard
           icon={Sparkles} label="Total Analyses"
@@ -117,7 +115,6 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Charts Row */}
       <div className="grid gap-4 lg:grid-cols-3 mb-6">
         <div className="lg:col-span-2">
           <BrandScoreChart analyses={analyses} />
@@ -126,10 +123,9 @@ export default function Dashboard() {
       </div>
 
       <div className="mb-8">
-        <GoalProgressChart analyses={analyses} />
+        <BrandHealthTips analyses={analyses} />
       </div>
 
-      {/* Kanban Analyses */}
       <div>
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <h2 className="text-lg font-semibold text-foreground">Recent Analyses</h2>
