@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import GradeCircle from '@/components/dashboard/GradeCircle';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Lock, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { appClient } from '@/api/appClient';
 
 const dimensionDetails = {
   'Content Quality': {
@@ -22,9 +27,22 @@ const dimensionDetails = {
   },
 };
 
-function DimensionCard({ dimension, index }) {
+function DimensionCard({ dimension, index, locked }) {
   const [hovered, setHovered] = useState(false);
   const details = dimensionDetails[dimension.label];
+
+  if (locked) {
+    return (
+      <div className="relative flex flex-col items-center">
+        <div className="blur-sm pointer-events-none opacity-40">
+          <GradeCircle grade={dimension.grade || 'B'} label={dimension.label} size="sm" />
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Lock className="w-4 h-4 text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -56,7 +74,6 @@ function DimensionCard({ dimension, index }) {
                 </li>
               ))}
             </ul>
-            {/* Arrow */}
             <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-border" />
           </motion.div>
         )}
@@ -66,6 +83,14 @@ function DimensionCard({ dimension, index }) {
 }
 
 export default function BrandScorecard({ analysis }) {
+  const [isPro, setIsPro] = useState(false);
+
+  useEffect(() => {
+    appClient.auth.me().then(u => {
+      setIsPro(u?.role === 'pro' || u?.role === 'admin' || u?.role === 'agency');
+    }).catch(() => {});
+  }, []);
+
   const dimensions = [
     { grade: analysis.content_quality_grade, label: 'Content Quality' },
     { grade: analysis.engagement_grade, label: 'Engagement' },
@@ -77,16 +102,34 @@ export default function BrandScorecard({ analysis }) {
     <Card className="p-6 lg:p-8">
       <div className="flex items-start justify-between mb-6">
         <h3 className="text-lg font-semibold">Brand Score</h3>
-        <span className="text-xs text-muted-foreground">Hover scores for tips</span>
+        {isPro ? (
+          <span className="text-xs text-muted-foreground">Hover scores for tips</span>
+        ) : (
+          <Badge className="bg-primary/10 text-primary border border-primary/20 text-[10px]">
+            Free Plan — Overall Grade Only
+          </Badge>
+        )}
       </div>
       <div className="flex flex-col items-center mb-8">
         <GradeCircle grade={analysis.overall_grade} label="Overall" size="lg" />
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {dimensions.map((d, i) => (
-          <DimensionCard key={d.label} dimension={d} index={i} />
+          <DimensionCard key={d.label} dimension={d} index={i} locked={!isPro} />
         ))}
       </div>
+      {!isPro && (
+        <div className="mt-6 pt-4 border-t border-border text-center">
+          <p className="text-xs text-muted-foreground mb-3">
+            Upgrade to Pro to unlock detailed grades for Content Quality, Engagement, Networking & Industry Fit
+          </p>
+          <Link to="/pricing">
+            <Button size="sm" className="gap-1.5 rounded-lg">
+              <Zap className="w-3 h-3" /> Upgrade to Pro
+            </Button>
+          </Link>
+        </div>
+      )}
     </Card>
   );
 }

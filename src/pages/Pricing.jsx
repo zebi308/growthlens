@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Zap, Building2, Star } from 'lucide-react';
+import { Check, Zap, Building2, Star, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/api/supabaseClient';
+import { useAuth } from '@/lib/AuthContext';
+
+const STRIPE_PRICES = {
+  pro: import.meta.env.VITE_STRIPE_PRO_PRICE_ID || 'price_REPLACE_WITH_YOUR_PRO_PRICE_ID',
+  agency: import.meta.env.VITE_STRIPE_AGENCY_PRICE_ID || 'price_REPLACE_WITH_YOUR_AGENCY_PRICE_ID',
+};
 
 const plans = [
   {
@@ -17,13 +24,14 @@ const plans = [
     features: [
       '2 analyses per month',
       '1 platform connection',
-      'Basic brand scorecard',
+      'Basic brand scorecard (overall grade only)',
       'Content calendar (7 days)',
       'Community support',
     ],
     cta: 'Current Plan',
     ctaClass: 'bg-white/10 text-muted-foreground cursor-default',
     disabled: true,
+    priceId: null,
   },
   {
     name: 'Pro',
@@ -36,8 +44,8 @@ const plans = [
     badge: 'Most Popular',
     features: [
       'Unlimited analyses',
-      '4 platform connections',
-      'AI competitor tracking',
+      'All platform connections',
+      'Full brand scorecard with all grades',
       '30-day content calendar',
       'Trend predictions',
       'Influencer suggestions',
@@ -47,6 +55,7 @@ const plans = [
     cta: 'Upgrade to Pro',
     ctaClass: 'bg-gradient-to-r from-violet-600 to-purple-600 text-white neon-glow font-semibold',
     disabled: false,
+    priceId: STRIPE_PRICES.pro,
   },
   {
     name: 'Agency',
@@ -70,12 +79,15 @@ const plans = [
     cta: 'Upgrade to Agency',
     ctaClass: 'bg-gradient-to-r from-pink-600 to-rose-600 text-white neon-glow-pink font-semibold',
     disabled: false,
+    priceId: STRIPE_PRICES.agency,
   },
 ];
 
 const gatedFeatures = {
+  'Full Brand Scorecard': 'Pro',
+  '30-Day Content Calendar': 'Pro',
   'Competitor Tracking': 'Pro',
-  'Content Scheduling': 'Pro',
+  'Trend Predictions': 'Pro',
   'AI Visual Generation': 'Pro',
   'Team Workspaces': 'Agency',
   'White-label Reports': 'Agency',
@@ -83,6 +95,38 @@ const gatedFeatures = {
 };
 
 export default function Pricing() {
+  const { user } = useAuth();
+  const [loadingPlan, setLoadingPlan] = useState(null);
+
+  const handleCheckout = async (plan) => {
+    if (!plan.priceId || plan.disabled) return;
+
+    setLoadingPlan(plan.name);
+    try {
+      const { data, error } = await supabase.functions.invoke('stripe-checkout', {
+        body: {
+          price_id: plan.priceId,
+          success_url: `${window.location.origin}/?upgraded=true`,
+          cancel_url: `${window.location.origin}/pricing`,
+          customer_email: user?.email || undefined,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (err) {
+      console.error('Checkout error:', err);
+      alert('Failed to start checkout. Please try again.');
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
   return (
     <div className="p-6 lg:p-10 max-w-5xl mx-auto">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
@@ -135,15 +179,19 @@ export default function Pricing() {
 
             <Button
               className={`w-full h-10 rounded-xl ${plan.ctaClass}`}
-              disabled={plan.disabled}
+              disabled={plan.disabled || loadingPlan === plan.name}
+              onClick={() => handleCheckout(plan)}
             >
-              {plan.cta}
+              {loadingPlan === plan.name ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                plan.cta
+              )}
             </Button>
           </motion.div>
         ))}
       </div>
 
-      {/* Feature gate table */}
       <motion.div
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
         className="glass-card rounded-2xl p-6 neon-border"
@@ -160,7 +208,7 @@ export default function Pricing() {
           ))}
         </div>
         <p className="text-xs text-muted-foreground mt-4">
-          All plans include a 7-day free trial. No credit card required to start.
+          Payments are securely processed by Stripe. Cancel anytime from your account.
         </p>
       </motion.div>
     </div>
