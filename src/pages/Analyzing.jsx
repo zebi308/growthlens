@@ -29,7 +29,6 @@ export default function Analyzing() {
     runAnalysis();
   }, [id]);
 
-  // Try to detect user's country from browser
   const getUserCountry = () => {
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
@@ -65,17 +64,16 @@ export default function Analyzing() {
     if (record.linkedin_url) platforms.push(`LinkedIn: ${record.linkedin_url}`);
     if (record.facebook_url) platforms.push(`Facebook: ${record.facebook_url}`);
 
-    // Free users: only 1 platform
     const activePlatforms = isPro ? platforms : platforms.slice(0, 1);
 
     const context = `Platforms: ${activePlatforms.join(', ')}. Industry: ${record.industry}. Goals: ${(record.goals || []).join(', ')}.${record.existing_content ? ` Content sample: ${record.existing_content.slice(0, 300)}` : ''}\nUser location: ${userCountry}.`;
 
-    const calendarDays = isPro ? 14 : 7;
-    const recommendationCount = isPro ? 8 : 4;
-    const networkingCount = isPro ? 5 : 2;
+    // ALWAYS generate 14 days so free users see 7 + 7 blurred
+    const calendarDays = 14;
+    const recommendationCount = isPro ? 8 : 6;
+    const networkingCount = isPro ? 5 : 4;
 
     try {
-    // Call 1: Core brand analysis + calendar
     const coreResult = await appClient.integrations.Core.InvokeLLM({
       prompt: `You are an Instagram-first brand consultant. Analyze this personal brand and return structured data.
 
@@ -145,7 +143,6 @@ Return:
       }
     });
 
-    // Call 2: Trends + influencers (Pro only)
     let extrasResult = {};
     if (isPro) {
       extrasResult = await appClient.integrations.Core.InvokeLLM({
@@ -189,7 +186,7 @@ Return:
         }
       }
     });
-    } // end isPro check for extras
+    }
 
     await appClient.entities.BrandAnalysis.update(id, {
       ...coreResult,
@@ -204,8 +201,6 @@ Return:
       navigate(`/dashboard/results?id=${id}`);
     }
   };
-
-  const CurrentIcon = stages[stageIdx].icon;
 
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center p-6">
