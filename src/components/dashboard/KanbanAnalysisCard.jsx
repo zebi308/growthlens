@@ -64,7 +64,6 @@ export default function KanbanAnalysisCard({ analysis }) {
           </div>
         </div>
 
-        {/* Mini bar chart */}
         {analysis.status === 'completed' && (
           <div className="mt-3 h-12">
             <ResponsiveContainer width="100%" height="100%">
@@ -92,7 +91,7 @@ export default function KanbanAnalysisCard({ analysis }) {
                 <p className="text-xs text-muted-foreground leading-relaxed mb-4">{analysis.brand_summary}</p>
               )}
               <Link
-                to={`/results?id=${analysis.id}`}
+                to={`/dashboard/results?id=${analysis.id}`}
                 className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
               >
                 View Full Report <ArrowRight className="w-3 h-3" />

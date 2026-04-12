@@ -1,12 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Plus, Calendar, Lightbulb, Menu, X, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Plus, Calendar, Lightbulb, Menu, X, Sparkles, BarChart2, DollarSign, Zap } from 'lucide-react';
 
 const navItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/new-analysis', icon: Plus, label: 'New Analysis' },
-  { path: '/recommendations', icon: Lightbulb, label: 'Tips' },
-  { path: '/content-calendar', icon: Calendar, label: 'Calendar' },
+  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/dashboard/new-analysis', icon: Plus, label: 'New Analysis' },
+  { path: '/dashboard/recommendations', icon: Lightbulb, label: 'Recommendations' },
+  { path: '/dashboard/content-calendar', icon: Calendar, label: 'Content Calendar' },
+  { path: '/dashboard/competitors', icon: BarChart2, label: 'Competitors' },
+  { path: '/dashboard/pricing', icon: DollarSign, label: 'Pricing' },
+  { path: '/dashboard/premium', icon: Zap, label: 'Premium' },
+];
+
+const bottomTabs = [
+  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/dashboard/new-analysis', icon: Plus, label: 'New Analysis' },
+  { path: '/dashboard/recommendations', icon: Lightbulb, label: 'Tips' },
+  { path: '/dashboard/content-calendar', icon: Calendar, label: 'Calendar' },
+  { path: '/dashboard/competitors', icon: BarChart2, label: 'Competitors' },
 ];
 
 export default function MobileNav() {
@@ -50,15 +61,14 @@ export default function MobileNav() {
         </div>
       )}
 
-      {/* Bottom tab bar for mobile */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-xl border-t border-border flex justify-around py-2 px-2">
-        {navItems.map(item => {
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-xl border-t border-border flex justify-around py-2 px-1">
+        {bottomTabs.map(item => {
           const isActive = location.pathname === item.path;
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+              className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                 isActive ? 'text-primary' : 'text-muted-foreground'
               }`}
             >

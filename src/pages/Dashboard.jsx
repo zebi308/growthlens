@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { appClient } from '@/api/appClient';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Plus, Sparkles, TrendingUp, Target, Users } from 'lucide-react';
+import { Plus, Sparkles, TrendingUp, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import AnimatedStatCard from '@/components/dashboard/AnimatedStatCard';
 import BrandScoreChart from '@/components/dashboard/BrandScoreChart';
@@ -21,7 +21,6 @@ function computeStats(analyses) {
   const avg = completed.length > 0
     ? Math.round(completed.reduce((s, a) => s + (gradeMap[a.overall_grade] || 0), 0) / completed.length)
     : 0;
-  const goals = analyses.reduce((s, a) => s + (a.goals?.length || 0), 0);
   const platforms = new Set();
   analyses.forEach(a => {
     if (a.instagram_url) platforms.add('Instagram');
@@ -35,14 +34,43 @@ function computeStats(analyses) {
     total: analyses.length,
     avgGrade: reverseMap[avg] || '—',
     avgRadial: avg ? gradeToRadial[reverseMap[avg]] || 50 : 0,
-    goals,
     platforms: platforms.size,
+    platformList: [...platforms],
   };
+}
+
+function GradeExplanation() {
+  const grades = [
+    { grade: 'A', label: 'Excellent', desc: 'Top-tier brand. Strong across all metrics.', color: 'text-green-400' },
+    { grade: 'B', label: 'Good', desc: 'Solid presence with room for optimization.', color: 'text-emerald-400' },
+    { grade: 'C', label: 'Average', desc: 'Decent foundation but needs consistent effort.', color: 'text-amber-400' },
+    { grade: 'D', label: 'Below Average', desc: 'Significant gaps in strategy or execution.', color: 'text-orange-400' },
+    { grade: 'F', label: 'Needs Attention', desc: 'Major improvements needed across the board.', color: 'text-red-400' },
+  ];
+
+  return (
+    <div className="glass-card rounded-2xl p-6 neon-border">
+      <h3 className="font-display font-bold text-foreground mb-1">Grade Scale</h3>
+      <p className="text-xs text-muted-foreground mb-4">What each grade means for your brand</p>
+      <div className="space-y-2">
+        {grades.map(g => (
+          <div key={g.grade} className="flex items-center gap-3">
+            <span className={`text-lg font-black w-8 ${g.color}`}>{g.grade}</span>
+            <div>
+              <span className="text-sm font-semibold text-foreground">{g.label}</span>
+              <span className="text-xs text-muted-foreground ml-2">{g.desc}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('All');
   const [currentUser, setCurrentUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     appClient.auth.me().then(setCurrentUser).catch(() => {});
@@ -80,38 +108,39 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <AnimatedStatCard
-          icon={Sparkles} label="Total Analyses"
-          value={isLoading ? 0 : stats.total}
-          color="bg-primary/10 text-primary"
-          accentColor="#a855f7"
-          type="number" delay={0}
-        />
-        <AnimatedStatCard
-          icon={TrendingUp} label="Avg. Grade"
-          value={isLoading ? '—' : stats.avgGrade}
-          color="bg-emerald-500/10 text-emerald-400"
-          accentColor="#10b981"
-          radialPct={isLoading ? 0 : stats.avgRadial}
-          ringColor="#10b981"
-          type="grade" delay={0.05}
-        />
-        <AnimatedStatCard
-          icon={Target} label="Goals Tracked"
-          value={isLoading ? 0 : stats.goals}
-          color="bg-pink-500/10 text-pink-400"
-          accentColor="#ec4899"
-          radialPct={isLoading ? 0 : Math.min(100, stats.goals * 10)}
-          ringColor="#ec4899"
-          type="number" delay={0.1}
-        />
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="cursor-pointer" onClick={() => {
+          const el = document.getElementById('recent-analyses');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }}>
+          <AnimatedStatCard
+            icon={Sparkles} label="Total Analyses"
+            value={isLoading ? 0 : stats.total}
+            color="bg-primary/10 text-primary"
+            accentColor="#a855f7"
+            type="number" delay={0}
+          />
+        </div>
+        <div className="cursor-pointer" onClick={() => {
+          const el = document.getElementById('brand-insights');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }}>
+          <AnimatedStatCard
+            icon={TrendingUp} label="Avg. Grade"
+            value={isLoading ? '—' : stats.avgGrade}
+            color="bg-emerald-500/10 text-emerald-400"
+            accentColor="#10b981"
+            radialPct={isLoading ? 0 : stats.avgRadial}
+            ringColor="#10b981"
+            type="grade" delay={0.05}
+          />
+        </div>
         <AnimatedStatCard
           icon={Users} label="Platforms"
           value={isLoading ? 0 : stats.platforms}
           color="bg-blue-500/10 text-blue-400"
           accentColor="#38bdf8"
-          type="number" delay={0.15}
+          type="number" delay={0.1}
         />
       </div>
 
@@ -122,11 +151,43 @@ export default function Dashboard() {
         <PlatformDonut analyses={analyses} />
       </div>
 
-      <div className="mb-8">
-        <BrandHealthTips analyses={analyses} />
+      <div className="grid gap-4 lg:grid-cols-2 mb-6">
+        <div id="brand-insights">
+          <BrandHealthTips analyses={analyses} />
+        </div>
+        <GradeExplanation />
       </div>
 
-      <div>
+      {/* Connected Platforms */}
+      {stats.platformList.length > 0 && (
+        <div className="glass-card rounded-2xl p-6 neon-border mb-8">
+          <h3 className="font-display font-bold text-foreground mb-1">Connected Platforms</h3>
+          <p className="text-xs text-muted-foreground mb-4">Platforms analyzed across your brand assessments</p>
+          <div className="flex flex-wrap gap-3">
+            {stats.platformList.map(p => {
+              const latest = analyses.find(a => {
+                const key = p.toLowerCase().replace('twitter', 'twitter') + '_url';
+                return a[key];
+              });
+              const urlKey = p.toLowerCase().replace('/', '').replace('twitter', 'twitter') + '_url';
+              const url = latest?.[urlKey];
+
+              return (
+                <div key={p} className="flex items-center gap-2 bg-white/5 rounded-xl px-4 py-2.5 border border-white/5">
+                  <span className="text-sm font-semibold text-foreground">{p}</span>
+                  {url && (
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate max-w-[200px]">
+                      {url.replace(/https?:\/\/(www\.)?/, '').slice(0, 30)}
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div id="recent-analyses">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <h2 className="text-lg font-semibold text-foreground">Recent Analyses</h2>
           <div className="flex items-center gap-1 bg-muted/40 rounded-xl p-1">

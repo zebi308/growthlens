@@ -73,7 +73,7 @@ export default function BrandHealthTips({ analyses }) {
           <h3 className="font-display font-bold text-foreground">Brand Insights</h3>
           <p className="text-xs text-muted-foreground">From your latest analysis</p>
         </div>
-        <Link to={`/results?id=${latest.id}`} className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
+        <Link to={`/dashboard/results?id=${latest.id}`} className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
           View full report <ArrowRight className="w-3 h-3" />
         </Link>
       </div>

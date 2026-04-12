@@ -29,10 +29,33 @@ export default function Analyzing() {
     runAnalysis();
   }, [id]);
 
+  // Try to detect user's country from browser
+  const getUserCountry = () => {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      if (tz.startsWith('Europe/London') || tz.startsWith('Europe/Belfast')) return 'United Kingdom';
+      if (tz.startsWith('America/New_York') || tz.startsWith('America/Chicago') || tz.startsWith('America/Denver') || tz.startsWith('America/Los_Angeles')) return 'United States';
+      if (tz.startsWith('Europe/')) return tz.split('/')[1].replace(/_/g, ' ');
+      if (tz.startsWith('Asia/')) return tz.split('/')[1].replace(/_/g, ' ');
+      if (tz.startsWith('Australia/')) return 'Australia';
+      if (tz.startsWith('Pacific/Auckland')) return 'New Zealand';
+      const lang = navigator.language || 'en';
+      if (lang.includes('en-GB')) return 'United Kingdom';
+      if (lang.includes('en-US')) return 'United States';
+      return 'the user\'s region';
+    } catch {
+      return 'the user\'s region';
+    }
+  };
+
   const runAnalysis = async () => {
     const analysis = await appClient.entities.BrandAnalysis.list();
     const record = analysis.find(a => a.id === id);
     if (!record) return;
+
+    const currentUser = await appClient.auth.me();
+    const isPro = currentUser?.role === 'pro' || currentUser?.role === 'admin' || currentUser?.role === 'agency';
+    const userCountry = getUserCountry();
 
     const platforms = [];
     if (record.instagram_url) platforms.push(`Instagram (PRIMARY): ${record.instagram_url}`);
@@ -42,8 +65,16 @@ export default function Analyzing() {
     if (record.linkedin_url) platforms.push(`LinkedIn: ${record.linkedin_url}`);
     if (record.facebook_url) platforms.push(`Facebook: ${record.facebook_url}`);
 
-    const context = `Platforms: ${platforms.join(', ')}. Industry: ${record.industry}. Goals: ${(record.goals || []).join(', ')}.${record.existing_content ? ` Content sample: ${record.existing_content.slice(0, 300)}` : ''}`;
+    // Free users: only 1 platform
+    const activePlatforms = isPro ? platforms : platforms.slice(0, 1);
 
+    const context = `Platforms: ${activePlatforms.join(', ')}. Industry: ${record.industry}. Goals: ${(record.goals || []).join(', ')}.${record.existing_content ? ` Content sample: ${record.existing_content.slice(0, 300)}` : ''}\nUser location: ${userCountry}.`;
+
+    const calendarDays = isPro ? 14 : 7;
+    const recommendationCount = isPro ? 8 : 4;
+    const networkingCount = isPro ? 5 : 2;
+
+    try {
     // Call 1: Core brand analysis + calendar
     const coreResult = await appClient.integrations.Core.InvokeLLM({
       prompt: `You are an Instagram-first brand consultant. Analyze this personal brand and return structured data.
@@ -51,13 +82,13 @@ export default function Analyzing() {
 ${context}
 
 Return:
-- Grades (A/B/C/D/F) for overall, content quality, engagement, networking, industry alignment. Be realistic — most are C or D.
+- Grades (A/B/C/D/F) for overall, content quality, engagement, networking, industry alignment. Grade fairly based on actual quality signals — A for exceptional, B for good, C for average, D for below average, F for poor. Don't default to C; assess each dimension independently.
 - brand_summary: 2-3 sentence paragraph on their Instagram potential.
-- strengths: 3-4 specific strengths.
-- weaknesses: 3-4 specific weaknesses with Instagram improvement tips.
-- recommendations: 8 actionable items (categories: content, engagement, networking, seo_keywords, posting_schedule). Include Reels strategy, carousel advice, Story CTAs.
-- content_calendar: 14 posts. Each has day, platform, post_type (Reel/Carousel/Static Post/Story), topic, caption (2-3 sentences), hashtags, cta, best_time, engagement_prediction (e.g. "Est. 3-5% engagement").
-- networking_opportunities: 5 entries with type, name, description.`,
+- strengths: ${isPro ? '3-4' : '2'} specific strengths.
+- weaknesses: ${isPro ? '3-4' : '2'} specific weaknesses with Instagram improvement tips.
+- recommendations: ${recommendationCount} actionable items (categories: content, engagement, networking, seo_keywords, posting_schedule). Include Reels strategy, carousel advice, Story CTAs.
+- content_calendar: ${calendarDays} posts. Each has day, platform, post_type (Reel/Carousel/Static Post/Story), topic, caption (2-3 sentences), hashtags, cta, best_time, engagement_prediction (e.g. "Est. 3-5% engagement").
+- networking_opportunities: ${networkingCount} entries with type, name, description, url. IMPORTANT: Only suggest networking communities and groups based in ${userCountry}. If there are no relevant communities in ${userCountry}, suggest well-known global online communities instead. Always include the country or "Online/Global" in the description.`,
       response_json_schema: {
         type: "object",
         properties: {
@@ -114,8 +145,10 @@ Return:
       }
     });
 
-    // Call 2: Trends + influencers (separate to keep schemas small)
-    const extrasResult = await appClient.integrations.Core.InvokeLLM({
+    // Call 2: Trends + influencers (Pro only)
+    let extrasResult = {};
+    if (isPro) {
+      extrasResult = await appClient.integrations.Core.InvokeLLM({
       prompt: `You are a social media trend analyst. For this creator, suggest trending content and collab partners.
 
 ${context}
@@ -123,7 +156,7 @@ Current month: ${new Date().toLocaleDateString('en-US', { month: 'long', year: '
 
 Return:
 - trend_predictions: 3 hot topics in this niche for the next 7 days (topic, platform, why it's trending, content_idea).
-- influencer_suggestions: 3 creators to collaborate with (name, platform, niche, why_collab, profile_url if known).`,
+- influencer_suggestions: 3 creators to collaborate with (name, platform, niche, why_collab, profile_url if known). IMPORTANT: Only suggest creators based in or primarily active in ${userCountry}. If there are not enough creators in ${userCountry}, suggest globally recognized creators but note their country.`,
       add_context_from_internet: true,
       response_json_schema: {
         type: "object",
@@ -156,6 +189,7 @@ Return:
         }
       }
     });
+    } // end isPro check for extras
 
     await appClient.entities.BrandAnalysis.update(id, {
       ...coreResult,
@@ -164,6 +198,11 @@ Return:
     });
 
     navigate(`/dashboard/results?id=${id}`);
+    } catch (err) {
+      console.error('Analysis failed:', err);
+      await appClient.entities.BrandAnalysis.update(id, { status: 'failed' });
+      navigate(`/dashboard/results?id=${id}`);
+    }
   };
 
   const CurrentIcon = stages[stageIdx].icon;
