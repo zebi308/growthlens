@@ -4,9 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import GradeCircle from '@/components/dashboard/GradeCircle';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, Zap } from 'lucide-react';
+import { Lock, Zap, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { appClient } from '@/api/appClient';
+import { useUserPlan } from '@/hooks/useUserPlan';
 
 const dimensionDetails = {
   'Content Quality': {
@@ -27,22 +27,17 @@ const dimensionDetails = {
   },
 };
 
+const gradeExplanations = {
+  A: 'Excellent — Top-tier brand presence. Strong across all metrics.',
+  B: 'Good — Solid presence with room for optimization.',
+  C: 'Average — Decent foundation but needs consistent effort.',
+  D: 'Below Average — Significant gaps in strategy or execution.',
+  F: 'Needs Attention — Major improvements needed across the board.',
+};
+
 function DimensionCard({ dimension, index, locked }) {
   const [hovered, setHovered] = useState(false);
   const details = dimensionDetails[dimension.label];
-
-  if (locked) {
-    return (
-      <div className="relative flex flex-col items-center">
-        <div className="blur-sm pointer-events-none opacity-40">
-          <GradeCircle grade={dimension.grade || 'B'} label={dimension.label} size="sm" />
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Lock className="w-4 h-4 text-muted-foreground" />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <motion.div
@@ -54,42 +49,52 @@ function DimensionCard({ dimension, index, locked }) {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <GradeCircle grade={dimension.grade} label={dimension.label} size="sm" />
-
-      <AnimatePresence>
-        {hovered && details && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 z-50 w-56 bg-popover border border-border rounded-xl p-3 shadow-xl"
-          >
-            <p className="text-xs text-muted-foreground mb-2 leading-relaxed">{details.description}</p>
-            <ul className="space-y-1">
-              {details.tips.map((tip, i) => (
-                <li key={i} className="text-xs text-foreground flex items-start gap-1.5">
-                  <span className="text-primary mt-0.5">•</span>
-                  {tip}
-                </li>
-              ))}
-            </ul>
-            <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-border" />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {locked ? (
+        <div className="relative flex flex-col items-center">
+          <div className="relative">
+            <div className="blur-sm pointer-events-none opacity-30">
+              <GradeCircle grade={dimension.grade || 'B'} label="" size="sm" />
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Lock className="w-4 h-4 text-muted-foreground" />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 font-medium">{dimension.label}</p>
+        </div>
+      ) : (
+        <>
+          <GradeCircle grade={dimension.grade} label={dimension.label} size="sm" />
+          <AnimatePresence>
+            {hovered && details && (
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                transition={{ duration: 0.15 }}
+                className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 z-50 w-56 bg-popover border border-border rounded-xl p-3 shadow-xl"
+              >
+                <p className="text-xs text-muted-foreground mb-2 leading-relaxed">{details.description}</p>
+                <ul className="space-y-1">
+                  {details.tips.map((tip, i) => (
+                    <li key={i} className="text-xs text-foreground flex items-start gap-1.5">
+                      <span className="text-primary mt-0.5">•</span>
+                      {tip}
+                    </li>
+                  ))}
+                </ul>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-border" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      )}
     </motion.div>
   );
 }
 
 export default function BrandScorecard({ analysis }) {
-  const [isPro, setIsPro] = useState(false);
-
-  useEffect(() => {
-    appClient.auth.me().then(u => {
-      setIsPro(u?.role === 'pro' || u?.role === 'admin' || u?.role === 'agency');
-    }).catch(() => {});
-  }, []);
+  const { isPro } = useUserPlan();
+  const [showTooltip, setShowTooltip] = useState(false);
 
   const dimensions = [
     { grade: analysis.content_quality_grade, label: 'Content Quality' },
@@ -110,18 +115,40 @@ export default function BrandScorecard({ analysis }) {
           </Badge>
         )}
       </div>
-      <div className="flex flex-col items-center mb-8">
+
+      {/* Overall Grade with hover tooltip */}
+      <div
+        className="flex flex-col items-center mb-8 relative cursor-pointer"
+        onMouseEnter={() => setShowTooltip(true)}
+        onMouseLeave={() => setShowTooltip(false)}
+      >
         <GradeCircle grade={analysis.overall_grade} label="Overall" size="lg" />
+        <AnimatePresence>
+          {showTooltip && analysis.overall_grade && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              className="absolute top-full mt-3 z-50 bg-popover border border-border rounded-xl p-4 shadow-xl max-w-xs text-center"
+            >
+              <p className="text-sm font-semibold text-foreground mb-1">Grade: {analysis.overall_grade}</p>
+              <p className="text-xs text-muted-foreground">{gradeExplanations[analysis.overall_grade] || ''}</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+
+      {/* Sub grades - labels visible, scores blurred for free */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {dimensions.map((d, i) => (
           <DimensionCard key={d.label} dimension={d} index={i} locked={!isPro} />
         ))}
       </div>
+
       {!isPro && (
         <div className="mt-6 pt-4 border-t border-border text-center">
           <p className="text-xs text-muted-foreground mb-3">
-            Upgrade to Pro to unlock detailed grades for Content Quality, Engagement, Networking & Industry Fit
+            Upgrade to Pro to unlock detailed scores for Content Quality, Engagement, Networking & Industry Fit
           </p>
           <Link to="/dashboard/pricing">
             <Button size="sm" className="gap-1.5 rounded-lg">

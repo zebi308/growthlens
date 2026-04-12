@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 
 const suggestions = [
-  'Tech / SaaS', 'Marketing & Advertising', 'Finance & Fintech', 'Healthcare',
+  'Tech / SaaS', 'Marketing & Advertising', 'Influencer', 'Finance & Fintech', 'Healthcare',
   'Education', 'E-commerce', 'Real Estate', 'Design & Creative',
   'AI & Machine Learning', 'Coaching & Consulting', 'Media & Entertainment', 'Fitness & Wellness',
 ];
