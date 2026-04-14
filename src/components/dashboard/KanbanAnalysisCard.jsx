@@ -6,6 +6,7 @@ import { Clock, ArrowRight, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import GradeCircle from './GradeCircle';
 import { BarChart, Bar, ResponsiveContainer, Cell } from 'recharts';
+import { getAnalysisLabel, getAnalysisPlatforms } from '@/utils/analysisHelpers';
 
 const statusConfig = {
   pending:   { border: 'border-amber-500/60',  bg: 'bg-amber-500/10',  text: 'text-amber-400',   label: 'Pending' },
@@ -16,9 +17,19 @@ const statusConfig = {
 
 const gradeToScore = { A: 92, B: 76, C: 58, D: 40, F: 18 };
 
+const platformBadgeColors = {
+  Instagram: 'bg-pink-900/30 text-pink-400',
+  TikTok: 'bg-purple-900/30 text-purple-400',
+  YouTube: 'bg-red-900/30 text-red-400',
+  'Twitter/X': 'bg-sky-900/30 text-sky-400',
+  LinkedIn: 'bg-blue-900/30 text-blue-400',
+  Facebook: 'bg-indigo-900/30 text-indigo-400',
+};
+
 export default function KanbanAnalysisCard({ analysis }) {
   const [expanded, setExpanded] = useState(false);
   const cfg = statusConfig[analysis.status] || statusConfig.pending;
+  const { username, platforms } = getAnalysisLabel(analysis);
 
   const barData = [
     { name: 'Content', v: gradeToScore[analysis.content_quality_grade] || 50 },
@@ -36,10 +47,7 @@ export default function KanbanAnalysisCard({ analysis }) {
       animate={{ opacity: 1, y: 0 }}
       className={`glass-card rounded-2xl border-l-4 ${cfg.border} overflow-hidden group`}
     >
-      <div
-        className="p-5 cursor-pointer"
-        onClick={() => setExpanded(v => !v)}
-      >
+      <div className="p-5 cursor-pointer" onClick={() => setExpanded(v => !v)}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -51,10 +59,17 @@ export default function KanbanAnalysisCard({ analysis }) {
                 {format(new Date(analysis.created_date), 'MMM d, yyyy')}
               </span>
             </div>
-            <h3 className="font-bold text-foreground truncate text-sm">{analysis.industry || 'Untitled Analysis'}</h3>
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
-              {analysis.goals?.slice(0, 2).join(' · ') || 'No goals set'}
-            </p>
+            <h3 className="font-bold text-foreground text-sm">{username}</h3>
+            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+              {platforms.map(p => (
+                <Badge key={p} className={`${platformBadgeColors[p] || 'bg-muted text-muted-foreground'} text-[9px] px-1.5 py-0`}>
+                  {p}
+                </Badge>
+              ))}
+              {analysis.industry && (
+                <span className="text-[10px] text-muted-foreground">· {analysis.industry}</span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             {analysis.status === 'completed' && analysis.overall_grade && (
