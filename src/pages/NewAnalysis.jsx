@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { appClient } from '@/api/appClient';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight, Sparkles, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import StepIndicator from '@/components/wizard/StepIndicator';
-import ProfilesStep from '@/components/wizard/ProfilesStep';
+import ProfilesStep, { hasValidUrls } from '@/components/wizard/ProfilesStep';
 import IndustryStep from '@/components/wizard/IndustryStep';
 import GoalsStep from '@/components/wizard/GoalsStep';
 import ReviewStep from '@/components/wizard/ReviewStep';
@@ -17,8 +17,9 @@ export default function NewAnalysis() {
   const [submitting, setSubmitting] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [urlError, setUrlError] = useState(null);
   const [data, setData] = useState({
-    linkedin_url: '', twitter_url: '', instagram_url: '', tiktok_url: '', youtube_url: '',
+    linkedin_url: '', twitter_url: '', instagram_url: '', tiktok_url: '', youtube_url: '', facebook_url: '',
     industry: '', goals: [], existing_content: '',
   });
 
@@ -40,13 +41,28 @@ export default function NewAnalysis() {
     }
   };
 
-  const update = (key, value) => setData(prev => ({ ...prev, [key]: value }));
+  const update = (key, value) => {
+    setData(prev => ({ ...prev, [key]: value }));
+    setUrlError(null);
+  };
 
   const canNext = () => {
-    if (step === 0) return true;
+    if (step === 0) {
+      // Must have at least one valid URL
+      return hasValidUrls(data);
+    }
     if (step === 1) return data.industry;
     if (step === 2) return data.goals.length > 0;
     return true;
+  };
+
+  const handleNext = () => {
+    if (step === 0 && !hasValidUrls(data)) {
+      setUrlError('Please add at least one valid social media link');
+      return;
+    }
+    setUrlError(null);
+    setStep(s => s + 1);
   };
 
   const handleSubmit = async () => {
@@ -80,11 +96,11 @@ export default function NewAnalysis() {
           <p className="text-muted-foreground mb-6 max-w-sm mx-auto">
             You've reached your free limit of 2 analyses this month. Upgrade to Pro for unlimited analyses.
           </p>
-          <a href="/dashboard/pricing">
+          <Link to="/dashboard/pricing">
             <Button className="gap-2 neon-glow rounded-xl px-8">
               <Sparkles className="w-4 h-4" /> Upgrade to Pro
             </Button>
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -113,6 +129,12 @@ export default function NewAnalysis() {
           </motion.div>
         </AnimatePresence>
 
+        {urlError && step === 0 && (
+          <div className="mt-4 text-sm text-red-500 bg-red-50 dark:bg-red-950/20 rounded-lg p-3">
+            {urlError}
+          </div>
+        )}
+
         <div className="flex justify-between mt-8 pt-6 border-t border-border">
           <Button
             variant="ghost"
@@ -124,7 +146,7 @@ export default function NewAnalysis() {
           </Button>
           {step < 3 ? (
             <Button
-              onClick={() => setStep(s => s + 1)}
+              onClick={handleNext}
               disabled={!canNext()}
               className="gap-2 rounded-xl px-6"
             >

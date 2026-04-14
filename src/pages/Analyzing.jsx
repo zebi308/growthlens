@@ -32,15 +32,18 @@ export default function Analyzing() {
   const getUserCountry = () => {
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      if (tz.startsWith('Asia/Karachi') || tz.startsWith('Asia/Islamabad')) return 'Pakistan';
       if (tz.startsWith('Europe/London') || tz.startsWith('Europe/Belfast')) return 'United Kingdom';
       if (tz.startsWith('America/New_York') || tz.startsWith('America/Chicago') || tz.startsWith('America/Denver') || tz.startsWith('America/Los_Angeles')) return 'United States';
+      if (tz.startsWith('Asia/Dubai')) return 'United Arab Emirates';
+      if (tz.startsWith('Asia/Kolkata') || tz.startsWith('Asia/Calcutta')) return 'India';
       if (tz.startsWith('Europe/')) return tz.split('/')[1].replace(/_/g, ' ');
       if (tz.startsWith('Asia/')) return tz.split('/')[1].replace(/_/g, ' ');
       if (tz.startsWith('Australia/')) return 'Australia';
-      if (tz.startsWith('Pacific/Auckland')) return 'New Zealand';
       const lang = navigator.language || 'en';
       if (lang.includes('en-GB')) return 'United Kingdom';
       if (lang.includes('en-US')) return 'United States';
+      if (lang.includes('ur')) return 'Pakistan';
       return 'the user\'s region';
     } catch {
       return 'the user\'s region';
@@ -56,37 +59,44 @@ export default function Analyzing() {
     const isPro = currentUser?.role === 'pro' || currentUser?.role === 'admin' || currentUser?.role === 'agency';
     const userCountry = getUserCountry();
 
+    // Collect ALL provided platforms
     const platforms = [];
-    if (record.instagram_url) platforms.push(`Instagram (PRIMARY): ${record.instagram_url}`);
+    if (record.instagram_url) platforms.push(`Instagram: ${record.instagram_url}`);
     if (record.tiktok_url) platforms.push(`TikTok: ${record.tiktok_url}`);
     if (record.youtube_url) platforms.push(`YouTube: ${record.youtube_url}`);
     if (record.twitter_url) platforms.push(`Twitter/X: ${record.twitter_url}`);
     if (record.linkedin_url) platforms.push(`LinkedIn: ${record.linkedin_url}`);
     if (record.facebook_url) platforms.push(`Facebook: ${record.facebook_url}`);
 
+    // Free users: only first platform provided
     const activePlatforms = isPro ? platforms : platforms.slice(0, 1);
+    const platformNames = activePlatforms.map(p => p.split(':')[0].trim());
 
-    const context = `Platforms: ${activePlatforms.join(', ')}. Industry: ${record.industry}. Goals: ${(record.goals || []).join(', ')}.${record.existing_content ? ` Content sample: ${record.existing_content.slice(0, 300)}` : ''}\nUser location: ${userCountry}.`;
+    const context = `Platforms provided: ${activePlatforms.join(', ')}. Industry: ${record.industry}. Goals: ${(record.goals || []).join(', ')}.${record.existing_content ? ` Content sample: ${record.existing_content.slice(0, 300)}` : ''}\nUser location: ${userCountry}.`;
 
-    // ALWAYS generate 14 days so free users see 7 + 7 blurred
+    // Always generate 14 days so free users see 7 + 7 blurred
     const calendarDays = 14;
     const recommendationCount = isPro ? 8 : 6;
     const networkingCount = isPro ? 5 : 4;
 
     try {
     const coreResult = await appClient.integrations.Core.InvokeLLM({
-      prompt: `You are an Instagram-first brand consultant. Analyze this personal brand and return structured data.
+      prompt: `You are a multi-platform social media brand consultant. Analyze this personal brand across ALL the platforms they provided and return structured data.
+
+IMPORTANT: Visit and analyze the actual profile URLs provided. Base your analysis on the real content, follower count, engagement, posting frequency, and brand consistency you can observe from these profiles. Do NOT make generic assumptions — analyze what is actually there.
 
 ${context}
 
+The user has provided ${activePlatforms.length} platform(s): ${platformNames.join(', ')}. Analyze ALL of them equally — not just Instagram. Your content calendar should include posts for ALL platforms the user provided. Recommendations should cover ALL their platforms.
+
 Return:
-- Grades (A/B/C/D/F) for overall, content quality, engagement, networking, industry alignment. Grade fairly based on actual quality signals — A for exceptional, B for good, C for average, D for below average, F for poor. Don't default to C; assess each dimension independently.
-- brand_summary: 2-3 sentence paragraph on their Instagram potential.
-- strengths: ${isPro ? '3-4' : '2'} specific strengths.
-- weaknesses: ${isPro ? '3-4' : '2'} specific weaknesses with Instagram improvement tips.
-- recommendations: ${recommendationCount} actionable items (categories: content, engagement, networking, seo_keywords, posting_schedule). Include Reels strategy, carousel advice, Story CTAs.
-- content_calendar: ${calendarDays} posts. Each has day, platform, post_type (Reel/Carousel/Static Post/Story), topic, caption (2-3 sentences), hashtags, cta, best_time, engagement_prediction (e.g. "Est. 3-5% engagement").
-- networking_opportunities: ${networkingCount} entries with type, name, description, url. IMPORTANT: Only suggest networking communities and groups based in ${userCountry}. If there are no relevant communities in ${userCountry}, suggest well-known global online communities instead. Always include the country or "Online/Global" in the description.`,
+- Grades (A/B/C/D/F) for overall, content quality, engagement, networking, industry alignment. Grade fairly based on actual quality signals from the provided profile URLs — A for exceptional, B for good, C for average, D for below average, F for poor. Assess each dimension independently based on what you can observe.
+- brand_summary: 2-3 sentence paragraph analyzing their brand across all provided platforms.
+- strengths: ${isPro ? '3-4' : '2'} specific strengths observed from their actual profiles.
+- weaknesses: ${isPro ? '3-4' : '2'} specific weaknesses with improvement tips for their platforms.
+- recommendations: ${recommendationCount} actionable items (categories: content, engagement, networking, seo_keywords, posting_schedule). Tailor advice to the specific platforms they use (${platformNames.join(', ')}).
+- content_calendar: ${calendarDays} posts spread across the user's platforms (${platformNames.join(', ')}). Each has day, platform (must be one of the user's actual platforms), post_type (Reel/Carousel/Static Post/Story/Video/Article/Thread as appropriate for each platform), topic, caption (2-3 sentences), hashtags, cta, best_time, engagement_prediction.
+- networking_opportunities: ${networkingCount} entries with type, name, description, url. Only suggest communities and groups in ${userCountry}. If none exist, suggest global online communities. Include country in description.`,
       response_json_schema: {
         type: "object",
         properties: {
@@ -143,17 +153,18 @@ Return:
       }
     });
 
+    // Call 2: Trends + influencers (Pro only)
     let extrasResult = {};
     if (isPro) {
       extrasResult = await appClient.integrations.Core.InvokeLLM({
-      prompt: `You are a social media trend analyst. For this creator, suggest trending content and collab partners.
+      prompt: `You are a social media trend analyst. For this creator active on ${platformNames.join(', ')}, suggest trending content and collab partners.
 
 ${context}
 Current month: ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}.
 
 Return:
-- trend_predictions: 3 hot topics in this niche for the next 7 days (topic, platform, why it's trending, content_idea).
-- influencer_suggestions: 3 creators to collaborate with (name, platform, niche, why_collab, profile_url if known). IMPORTANT: Only suggest creators based in or primarily active in ${userCountry}. If there are not enough creators in ${userCountry}, suggest globally recognized creators but note their country.`,
+- trend_predictions: 3 hot topics in this niche for the next 7 days. Include the most relevant platform for each trend from the user's platforms (${platformNames.join(', ')}). Each has: topic, platform, why, content_idea.
+- influencer_suggestions: 3 creators to collaborate with. Only suggest creators based in ${userCountry}. If not enough, suggest globally recognized creators but note their country. Each has: name, platform, niche, why_collab, profile_url.`,
       add_context_from_internet: true,
       response_json_schema: {
         type: "object",
