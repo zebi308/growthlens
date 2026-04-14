@@ -11,43 +11,41 @@
     --radius: 0.875rem;
   }
 
-  /* Light theme */
   :root[data-theme="light"] {
-    --background: 0 0% 98%;
-    --foreground: 240 10% 10%;
+    --background: 220 14% 96%;
+    --foreground: 220 20% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 10%;
+    --card-foreground: 220 20% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 10%;
-    --primary: 280 100% 55%;
+    --popover-foreground: 220 20% 12%;
+    --primary: 268 80% 50%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 93%;
-    --secondary-foreground: 240 10% 30%;
-    --muted: 240 5% 93%;
-    --muted-foreground: 240 5% 45%;
-    --accent: 320 100% 55%;
+    --secondary: 220 14% 90%;
+    --secondary-foreground: 220 15% 25%;
+    --muted: 220 14% 92%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 320 80% 50%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5% 87%;
-    --input: 240 5% 90%;
-    --ring: 280 100% 55%;
-    --chart-1: 280 100% 55%;
-    --chart-2: 320 100% 55%;
-    --chart-3: 195 100% 45%;
-    --chart-4: 45 100% 50%;
-    --chart-5: 160 80% 40%;
+    --border: 220 13% 85%;
+    --input: 220 13% 88%;
+    --ring: 268 80% 50%;
+    --chart-1: 268 80% 50%;
+    --chart-2: 320 80% 50%;
+    --chart-3: 195 90% 42%;
+    --chart-4: 45 95% 48%;
+    --chart-5: 160 70% 38%;
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 10% 20%;
-    --sidebar-primary: 280 100% 55%;
+    --sidebar-foreground: 220 20% 15%;
+    --sidebar-primary: 268 80% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 95%;
-    --sidebar-accent-foreground: 240 10% 20%;
-    --sidebar-border: 240 5% 90%;
-    --sidebar-ring: 280 100% 55%;
+    --sidebar-accent: 220 14% 95%;
+    --sidebar-accent-foreground: 220 20% 15%;
+    --sidebar-border: 220 13% 88%;
+    --sidebar-ring: 268 80% 50%;
   }
 
-  /* Dark neon theme (default) */
   :root,
   :root[data-theme="dark"] {
     --background: 240 13% 6%;
@@ -89,19 +87,15 @@
   * {
     @apply border-border outline-ring/50;
   }
-
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-
   :root[data-theme="dark"] body,
   :root:not([data-theme="light"]) body {
     background-image: radial-gradient(ellipse at 20% 50%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
                       radial-gradient(ellipse at 80% 20%, rgba(236, 72, 153, 0.06) 0%, transparent 50%);
-  }
-
-  :root[data-theme="light"] body {
-    background-image: none;
   }
 }
 
@@ -110,51 +104,45 @@
     border: 1px solid rgba(139, 92, 246, 0.3);
     box-shadow: 0 0 12px rgba(139, 92, 246, 0.12), inset 0 0 12px rgba(139, 92, 246, 0.04);
   }
-
   :root[data-theme="light"] .neon-border {
-    border: 1px solid rgba(139, 92, 246, 0.15);
-    box-shadow: 0 0 8px rgba(139, 92, 246, 0.06);
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   }
-
-  .neon-border-pink {
-    border: 1px solid rgba(236, 72, 153, 0.3);
-    box-shadow: 0 0 12px rgba(236, 72, 153, 0.12), inset 0 0 12px rgba(236, 72, 153, 0.04);
-  }
-
   .glass-card {
     background: rgba(255,255,255,0.04);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.08);
   }
-
   :root[data-theme="light"] .glass-card {
-    background: rgba(255,255,255,0.7);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(0,0,0,0.06);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    background: hsl(var(--card));
+    backdrop-filter: none;
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   }
-
   .neon-text {
     text-shadow: 0 0 20px rgba(139, 92, 246, 0.6);
   }
-
   :root[data-theme="light"] .neon-text {
     text-shadow: none;
   }
-
   .neon-glow {
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.4), 0 4px 24px rgba(139, 92, 246, 0.2);
   }
-
   :root[data-theme="light"] .neon-glow {
-    box-shadow: 0 2px 12px rgba(139, 92, 246, 0.25);
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
   }
-
   .neon-glow-pink {
     box-shadow: 0 0 20px rgba(236, 72, 153, 0.4), 0 4px 24px rgba(236, 72, 153, 0.2);
   }
-
   :root[data-theme="light"] .neon-glow-pink {
-    box-shadow: 0 2px 12px rgba(236, 72, 153, 0.25);
+    box-shadow: 0 2px 8px rgba(236, 72, 153, 0.2);
+  }
+  .neon-border-pink {
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    box-shadow: 0 0 12px rgba(236, 72, 153, 0.12);
+  }
+  :root[data-theme="light"] .neon-border-pink {
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   }
 }
